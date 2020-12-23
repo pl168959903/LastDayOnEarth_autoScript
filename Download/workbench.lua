@@ -1,4 +1,4 @@
-workbench = {}
+Workbench = {}
 
 local fuel = {
     "pine_log",
@@ -22,7 +22,7 @@ local workbenchTable = {
 
 }
 
-function workbench:New(_name, position)
+function Workbench:New(_name, position)
     local obj = {}
 
     obj.name = _name
@@ -30,7 +30,7 @@ function workbench:New(_name, position)
     obj.fuel = workbenchTable[_name].fuel
     obj.task = nil
 
-    self._index = self
-    setmetatable(workbench, obj)
+    self.__index = self
+    setmetatable(obj, self)
     return obj
 end

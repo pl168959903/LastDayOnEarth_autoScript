@@ -24,7 +24,7 @@ local imageFileName = {
     charcoal = "charcoal.jpg"
 }
 
-recipes = {
+Recipes = {
     recipes_pine_plank = {
         product = "pine_plank",
         material = {
@@ -153,7 +153,7 @@ function item:add(_name)
     obj.imageName = imageFileName[_name]
     obj.recipes = {}
 
-    for key, value in pairs(recipes) do
+    for key, value in pairs(Recipes) do
         if value.product == _name then
             table.insert(obj.recipes, key)
         end
