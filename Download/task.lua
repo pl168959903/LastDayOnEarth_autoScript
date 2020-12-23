@@ -6,11 +6,11 @@ task = {}
 function task:New(_recipes, loc, amount)
     local obj = {}
 
-    if recipes[_recipes].source ~= workshop[loc] then
+    if Recipes[_recipes].source ~= workshop[loc] then
         return nil
     end
     
-    obj.recipes = recipes[_recipes]
+    obj.recipes = Recipes[_recipes]
     obj.workbench_loc = loc
     obj.amount = amount
 
