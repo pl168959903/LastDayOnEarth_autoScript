@@ -2,17 +2,36 @@ require(scriptPath() .. "func")
 
 PositionClass = {obj = {}}
 
-function PositionClass:New(_name)
+function PositionClass:NewGroup()
+    local gp = {}
+
+    function gp:addT(c)
+        local o
+        o.name = c
+        self.__index = self
+        setmetatable(o, self)
+        return o
+    end
+
+    self.__index = self
+    setmetatable(gp, self)
+    return gp
+end
+
+local k = PositionClass:NewGroup()
+k.a = k:addT("123")
+
+function PositionClass:NewPos(_name)
     local obj = {}
     obj.path = {}
     obj.name = _name
     self.__index = self
     setmetatable(obj, self)
-    table.insert(self.obj,obj)
+    table.insert(self.obj, obj)
     return obj
 end
 
-function PositionClass:addPath(_dest, _action, _cost)
+function PositionClass:AddPath(_dest, _action, _cost)
     self.path[_dest] = {}
     self.path[_dest].action = _action
     self.path[_dest].cost = _cost
@@ -69,99 +88,101 @@ function PositionClass:FindPath(_dest)
     return {s[_dest], path[_dest]}
 end
 
-Position = {}
+Position = {now = nil}
 
 -- ======================================================================
--- Position.origin = PositionClass:New()
-Position.workshop_A = PositionClass:New("workshop_A")
-Position.workshop_B = PositionClass:New("workshop_B")
-Position.workshop_C = PositionClass:New("workshop_C")
-Position.workshop_D = PositionClass:New("workshop_D")
-Position.workshop_E = PositionClass:New("workshop_E")
-Position.workshop_F = PositionClass:New("workshop_F")
-
-function PosLink(a, b, d)
-    a:addPath(b, function() end, d)
-    b:addPath(a, function() end, d)
-end
-
-PosLink(Position.workshop_A, Position.workshop_B, 6)
-PosLink(Position.workshop_A, Position.workshop_C, 9)
-PosLink(Position.workshop_A, Position.workshop_D, 8)
---PosLink(Position.workshop_A, Position.workshop_F, 7)
-PosLink(Position.workshop_B, Position.workshop_C, 5)
-PosLink(Position.workshop_C, Position.workshop_D, 3)
-PosLink(Position.workshop_C, Position.workshop_E, 2)
-PosLink(Position.workshop_D, Position.workshop_E, 1)
-PosLink(Position.workshop_F, Position.workshop_E, 3)
+Position.origin = PositionClass:NewPos()
+Position.workshop_1 = PositionClass:NewPos()
+Position.workshop_2 = PositionClass:NewPos()
+Position.workshop_3 = PositionClass:NewPos()
+Position.workshop_4 = PositionClass:NewPos()
+Position.workshop_5 = PositionClass:NewPos()
+Position.workshop_6 = PositionClass:NewPos()
+Position.storage = PositionClass:NewPos()
+Position.campfire = PositionClass:NewPos()
 
 -- ======================================================================
 
--- -- origin -> workshop_1
--- Position.origin:addPath(Position.workshop_1, function ()
---     Joystick:move(45, 0.1)
--- end)
+-- campfire -> origin
+Position.campfire:AddPath(Position.origin, function()
+    Joystick:move(270, 2)
+    Joystick:move(180, 1)
+    Joystick:move(270, 4)
+    Position.now = Position.origin
+end, 1)
+-- ====================================================================== storage
 
--- --======================================================================
+-- storage -> campfire
+Position.storage:AddPath(Position.campfire, function()
+    Joystick:move(270, 0.35)
+    Joystick:move(180, 0.1)
+    Position.now = Position.campfire
+end, 1)
 
--- -- workshop_1 -> workshop_2
--- Position.workshop_1:addPath(Position.workshop_2, function ()
---     Joystick:move(45, 0.5)
--- end)
+-- ====================================================================== origin
 
--- --======================================================================
+-- origin -> workshop_1
+Position.origin:AddPath(Position.workshop_1, function()
+    Joystick:move(45, 0.1)
+    Position.now = Position.workshop_1
+end, 1)
 
--- -- workshop_2 -> workshop_3
--- Position.workshop_2:addPath(Position.workshop_3, function ()
---     Joystick:move(45, 0.5)
--- end)
+-- origin -> warehouse
+Position.origin:AddPath(Position.storage, function()
+    Joystick:move(90, 4.5)
+    Joystick:move(0, 0.8)
+    Joystick:move(90, 0.9)
+    Position.now = Position.storage
+end, 1)
 
--- --======================================================================
+-- ====================================================================== workshop_1
 
--- -- workshop_3 -> workshop_4
--- Position.workshop_3:addPath(Position.workshop_4, function ()
---     Joystick:move(0, 0.6)
---     Joystick:move(90, 0.2)
--- end)
+-- workshop_1 -> workshop_2
+Position.workshop_1:AddPath(Position.workshop_2, function()
+    Joystick:move(45, 0.5)
+    Position.now = Position.workshop_2
+end, 1)
 
--- --======================================================================
+-- ====================================================================== workshop_2
 
--- -- workshop_4 -> workshop_5
--- Position.workshop_4:addPath(Position.workshop_5, function ()
---     Joystick:move(120, 0.5)
--- end)
+-- workshop_2 -> workshop_3
+Position.workshop_2:AddPath(Position.workshop_3, function()
+    Joystick:move(45, 0.5)
+    Position.now = Position.workshop_3
+end, 1)
 
--- --======================================================================
+-- ====================================================================== workshop_3
 
--- -- workshop_5 -> workshop_6
--- Position.workshop_5:addPath(Position.workshop_6, function ()
---     Joystick:move(90, 0.3)
--- Joystick:move(180, 0.3)
--- end)
+-- workshop_3 -> workshop_4
+Position.workshop_3:AddPath(Position.workshop_4, function()
+    Joystick:move(0, 0.6)
+    Joystick:move(90, 0.2)
+    Position.now = Position.workshop_4
+end, 1)
 
--- --======================================================================
+-- ====================================================================== workshop_4
 
--- -- workshop_5 -> origin
--- Position.workshop_6:addPath(Position.origin, function ()
---     Joystick:move(270, 4)
--- end)
+-- workshop_4 -> workshop_5
+Position.workshop_4:AddPath(Position.workshop_5, function()
+    Joystick:move(120, 0.5)
+    Position.now = Position.workshop_5
+end, 1)
 
--- Joystick:move(45, 0.1) --1
--- Joystick:move(45, 0.6) --2
--- Joystick:move(45, 0.6) --3
--- Joystick:move(0, 0.6)
--- Joystick:move(90, 0.2) --4
--- Joystick:move(120, 0.5) --5
--- Joystick:move(90, 0.3)
--- Joystick:move(180, 0.3) --6
--- Joystick:move(270, 4) -- r
+-- ====================================================================== workshop_5
 
--- Joystick:move(90, 4.5) -- o
--- Joystick:move(0, 0.8)
--- Joystick:move(90, 0.9) -- t 
--- Joystick:move(270, 0.35)
--- Joystick:move(180, 0.1) --a 
+-- workshop_5 -> workshop_6
+Position.workshop_5:AddPath(Position.workshop_6, function()
+    Joystick:move(90, 0.3)
+    Joystick:move(180, 0.3)
+    Position.now = Position.workshop_6
+end, 1)
 
--- Joystick:move(270, 2) --a 
--- Joystick:move(180, 1) --a 
--- Joystick:move(270, 4)
+-- ====================================================================== workshop_5
+
+-- workshop_5 -> origin
+Position.workshop_6:AddPath(Position.origin, function()
+    Joystick:move(270, 4)
+    Position.now = Position.origin
+end, 1)
+
+print(table.length(PositionClass))
